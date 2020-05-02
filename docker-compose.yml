@@ -1,0 +1,45 @@
+version: "3.3"
+services:
+  db:
+    container_name: blog-information-db-container
+    restart: always
+    image: blog-information-db-image
+    build:
+      context: ./db
+    volumes:
+      - db:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    networks:
+      - network
+    ports:
+      - 5432:5432
+  graphql:
+    container_name: blog-information-graphql-container
+    restart: always
+    image: blog-information-graphql-image
+    build:
+      context: ./graphql
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    networks:
+      - network
+    ports:
+      - 5433:5433
+    command:
+      [
+        "--connection",
+        "${DATABASE_URL}",
+        "--port",
+        "5433",
+        "--schema",
+        "blog_info_schema",
+        "--append-plugins",
+        "postgraphile-plugin-connection-filter",
+      ]
+networks:
+  network:
+volumes:
+  db:
